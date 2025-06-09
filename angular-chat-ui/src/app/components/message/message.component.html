@@ -83,6 +83,15 @@
     <div *ngIf="hasToolCalls && !isTool && !hideToolCalls" class="tool-calls">
       <app-tool-calls [toolCalls]="toolCalls"></app-tool-calls>
     </div>
+
+    <!-- Human interrupt display -->
+    <div *ngIf="shouldShowInterrupt" class="interrupt-section">
+      <app-interrupt 
+        [interruptValue]="interruptValue"
+        [isLastMessage]="isLastMessage"
+        [hasNoAIOrToolMessages]="hasNoAIOrToolMessages">
+      </app-interrupt>
+    </div>
     
     <!-- Actions -->
     <div *ngIf="!isLoading && (showActions() || isEditing())" 

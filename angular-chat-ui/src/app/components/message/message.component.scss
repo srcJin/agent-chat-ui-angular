@@ -394,4 +394,15 @@
       }
     }
   }
+
+  // Interrupt section styles
+  .interrupt-section {
+    margin-top: 1rem;
+    width: 100%;
+    
+    app-interrupt {
+      display: block;
+      width: 100%;
+    }
+  }
 }

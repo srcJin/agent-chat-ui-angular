@@ -4,10 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { type Message, type Checkpoint, type ToolCall } from '../../services/langgraph-client.service';
 import { ToolCallsComponent } from '../tool-calls/tool-calls.component';
 import { ToolResultComponent } from '../tool-result/tool-result.component';
+import { InterruptComponent } from '../interrupt/interrupt.component';
+import { isHumanInterrupt } from '../../models/interrupt.types';
 
 @Component({
   selector: 'app-message',
-  imports: [CommonModule, FormsModule, ToolCallsComponent, ToolResultComponent],
+  imports: [CommonModule, FormsModule, ToolCallsComponent, ToolResultComponent, InterruptComponent],
   templateUrl: './message.component.html',
   styleUrl: './message.component.scss'
 })
@@ -16,6 +18,8 @@ export class MessageComponent {
   @Input() isLoading = false;
   @Input() isLastMessage = false;
   @Input() hideToolCalls = false;
+  @Input() interruptValue: unknown;
+  @Input() hasNoAIOrToolMessages = false;
   @Output() regenerate = new EventEmitter<Checkpoint | null | undefined>();
   @Output() editMessage = new EventEmitter<{originalMessage: Message, newContent: string}>();
 
@@ -73,6 +77,14 @@ export class MessageComponent {
 
   get hasNonTextContent(): boolean {
     return this.contentBlocks.some(block => block.type !== 'text');
+  }
+
+  get hasInterrupt(): boolean {
+    return isHumanInterrupt(this.interruptValue);
+  }
+
+  get shouldShowInterrupt(): boolean {
+    return this.hasInterrupt && (this.isLastMessage || this.hasNoAIOrToolMessages);
   }
 
   onMouseEnter() {

@@ -7,6 +7,12 @@ import { LanggraphClientService, type Message, type Checkpoint } from '../../ser
 import { MessageComponent } from '../message/message.component';
 import { ThreadHistoryComponent } from './history/thread-history.component';
 import { ScrollToBottomComponent } from './scroll-to-bottom/scroll-to-bottom.component';
+import { 
+  SAMPLE_HUMAN_INTERRUPT, 
+  SAMPLE_EDIT_ONLY_INTERRUPT, 
+  SAMPLE_RESPONSE_ONLY_INTERRUPT,
+  isHumanInterrupt
+} from '../../models/interrupt.types';
 import { v4 as uuidv4 } from 'uuid';
 
 @Component({
@@ -18,6 +24,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class ThreadComponent implements OnInit, OnDestroy {
   input = signal('');
   firstTokenReceived = signal(false);
+  currentInterrupt = signal<unknown>(null);
   
   @Output() settingsRequested = new EventEmitter<void>();
 
@@ -177,5 +184,44 @@ export class ThreadComponent implements OnInit, OnDestroy {
     // Add messages to current stream
     const currentMessages = this.streamService.messages();
     this.streamService.setMessages([...currentMessages, sampleAIMessage, sampleToolResult]);
+  }
+
+  // Interrupt related methods
+  loadSampleInterrupt(type: 'full' | 'edit-only' | 'response-only' = 'full') {
+    let interrupt;
+    switch (type) {
+      case 'edit-only':
+        interrupt = SAMPLE_EDIT_ONLY_INTERRUPT;
+        break;
+      case 'response-only':
+        interrupt = SAMPLE_RESPONSE_ONLY_INTERRUPT;
+        break;
+      default:
+        interrupt = SAMPLE_HUMAN_INTERRUPT;
+    }
+    
+    this.currentInterrupt.set(interrupt);
+    console.log(`Loaded sample ${type} interrupt:`, interrupt);
+  }
+
+  clearInterrupt() {
+    this.currentInterrupt.set(null);
+    console.log('Cleared interrupt');
+  }
+
+  getInterruptForMessage(message: Message, messageIndex: number): unknown {
+    // Only show interrupt on the last AI message if there's a current interrupt
+    if (this.currentInterrupt() && 
+        message.type === 'ai' && 
+        messageIndex === this.streamService.messages().length - 1) {
+      return this.currentInterrupt();
+    }
+    return null;
+  }
+
+  hasNoAIOrToolMessages(messageIndex: number): boolean {
+    const messages = this.streamService.messages();
+    const remainingMessages = messages.slice(messageIndex + 1);
+    return !remainingMessages.some(m => m.type === 'ai' || m.type === 'tool');
   }
 }

@@ -89,6 +89,8 @@
                 [isLoading]="streamService.isLoading()"
                 [isLastMessage]="$index === streamService.messages().length - 1"
                 [hideToolCalls]="threadService.hideToolCalls()"
+                [interruptValue]="getInterruptForMessage(message, $index)"
+                [hasNoAIOrToolMessages]="hasNoAIOrToolMessages($index)"
                 (regenerate)="onRegenerate($event)"
                 (editMessage)="onEditMessage($event)">
               </app-message>
@@ -137,6 +139,39 @@
               title="Load sample tool call data">
               Demo Tool Calls
             </button>
+            
+            <div class="interrupt-controls">
+              <button 
+                type="button" 
+                class="btn-sample-interrupt"
+                (click)="loadSampleInterrupt('full')"
+                title="Load sample human interrupt">
+                Demo Full Interrupt
+              </button>
+              <button 
+                type="button" 
+                class="btn-sample-interrupt"
+                (click)="loadSampleInterrupt('edit-only')"
+                title="Load edit-only interrupt">
+                Demo Edit Interrupt
+              </button>
+              <button 
+                type="button" 
+                class="btn-sample-interrupt"
+                (click)="loadSampleInterrupt('response-only')"
+                title="Load response-only interrupt">
+                Demo Response Interrupt
+              </button>
+              @if (currentInterrupt()) {
+                <button 
+                  type="button" 
+                  class="btn-clear-interrupt"
+                  (click)="clearInterrupt()"
+                  title="Clear current interrupt">
+                  Clear Interrupt
+                </button>
+              }
+            </div>
           </div>
         }
 

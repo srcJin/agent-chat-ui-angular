@@ -1,0 +1,3 @@
+[submodule "react-reference"]
+	path = react-reference
+	url = https://github.com/srcJin/agent-chat-ui-angular-react-widget.git

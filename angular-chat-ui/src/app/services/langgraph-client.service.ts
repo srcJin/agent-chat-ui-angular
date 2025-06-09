@@ -6,10 +6,19 @@ import type { Thread as LangGraphThread, ValuesStreamEvent } from '@langchain/la
 export type Thread = LangGraphThread;
 
 // Basic interfaces for compatibility
+export interface ToolCall {
+  id?: string;
+  name: string;
+  args: Record<string, any>;
+}
+
 export interface Message {
   id: string;
   type: 'human' | 'ai' | 'tool' | 'system';
   content: string | Array<{ type: string; text?: string; [key: string]: any }>;
+  tool_calls?: ToolCall[];
+  tool_call_id?: string;
+  name?: string;
 }
 
 export interface Checkpoint {
@@ -146,5 +155,58 @@ export class LanggraphClientService {
       console.error('Error deleting thread:', error);
       throw error;
     }
+  }
+
+  // Mock data for testing tool calls
+  createSampleToolCallMessage(): Message {
+    return {
+      id: 'sample-ai-with-tools',
+      type: 'ai',
+      content: 'I need to search for information and then calculate something.',
+      tool_calls: [
+        {
+          id: 'call_abc123',
+          name: 'web_search',
+          args: {
+            query: 'Angular 19 new features',
+            max_results: 5,
+            include_snippets: true
+          }
+        },
+        {
+          id: 'call_def456',
+          name: 'calculate',
+          args: {
+            expression: '(15 + 25) * 0.8',
+            precision: 2
+          }
+        }
+      ]
+    };
+  }
+
+  createSampleToolResultMessage(): Message {
+    return {
+      id: 'sample-tool-result',
+      type: 'tool',
+      name: 'web_search',
+      tool_call_id: 'call_abc123',
+      content: JSON.stringify({
+        results: [
+          {
+            title: 'Angular 19 Features',
+            url: 'https://angular.dev/features',
+            snippet: 'New control flow syntax and improved SSR'
+          },
+          {
+            title: 'Angular 19 Release Notes',
+            url: 'https://github.com/angular/angular/releases',
+            snippet: 'Standalone components and better performance'
+          }
+        ],
+        total_results: 2,
+        search_time: 0.15
+      })
+    };
   }
 }

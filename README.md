@@ -38,9 +38,14 @@ The `angular-chat-ui/` directory contains a fully functional Angular port of the
 - **Core Functionality**: 
   - Setup form for LangGraph server configuration
   - Real-time chat interface
-  - Message rendering (human/AI)
+  - Message rendering (human/AI/tool)
   - Thread management
   - Error handling and loading states
+  - **Tool Call Display**: Rich UI for LangGraph tool interactions
+    - Formatted tool call arguments with JSON support
+    - Expandable tool result display
+    - Table view for structured data
+    - Hide/show tool calls toggle
 
 ### Architecture Comparison
 
@@ -64,6 +69,9 @@ The `angular-chat-ui/` directory contains a fully functional Angular port of the
 1. **SetupFormComponent**: Configuration form for API credentials
 2. **ThreadComponent**: Main chat interface with message history
 3. **MessageComponent**: Individual message rendering
+4. **ToolCallsComponent**: Display tool calls with formatted arguments
+5. **ToolResultComponent**: Show tool results with JSON parsing and expand/collapse
+6. **ToolCallTableComponent**: Compact table view for tool call arguments
 
 ## Getting Started
 

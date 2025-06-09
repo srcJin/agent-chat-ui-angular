@@ -1,11 +1,13 @@
 import { Component, Input, Output, EventEmitter, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { type Message, type Checkpoint } from '../../services/langgraph-client.service';
+import { type Message, type Checkpoint, type ToolCall } from '../../services/langgraph-client.service';
+import { ToolCallsComponent } from '../tool-calls/tool-calls.component';
+import { ToolResultComponent } from '../tool-result/tool-result.component';
 
 @Component({
   selector: 'app-message',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ToolCallsComponent, ToolResultComponent],
   templateUrl: './message.component.html',
   styleUrl: './message.component.scss'
 })
@@ -50,11 +52,11 @@ export class MessageComponent {
   }
 
   get hasToolCalls(): boolean {
-    return !!(this.message as any).tool_calls && (this.message as any).tool_calls.length > 0;
+    return !!(this.message.tool_calls) && this.message.tool_calls.length > 0;
   }
 
-  get toolCalls(): any[] {
-    return (this.message as any).tool_calls || [];
+  get toolCalls(): ToolCall[] {
+    return this.message.tool_calls || [];
   }
 
   // Enhanced content processing for multimodal support
@@ -163,24 +165,7 @@ export class MessageComponent {
     document.body.removeChild(textArea);
   }
 
-  // Helper method to format tool call arguments
-  formatToolCallArgs(args: any): string {
-    if (typeof args === 'string') {
-      return args;
-    }
-    try {
-      return JSON.stringify(args, null, 2);
-    } catch {
-      return String(args);
-    }
-  }
-
   get editButtonDisabled(): boolean {
     return !this.editValue().trim() || this.editValue().trim() === this.textContent;
-  }
-
-  // Helper method for template
-  hasKeys(obj: any): boolean {
-    return obj && typeof obj === 'object' && Object.keys(obj).length > 0;
   }
 }

@@ -1,0 +1,33 @@
+<div class="tool-calls-container">
+  @for (toolCall of toolCalls; track toolCall.id || $index) {
+    <div class="tool-call">
+      <div class="tool-call-header">
+        <h3 class="tool-call-name">{{ toolCall.name }}</h3>
+        @if (toolCall.id) {
+          <code class="tool-call-id">{{ toolCall.id }}</code>
+        }
+      </div>
+      
+      @if (hasArgs(toolCall.args)) {
+        <table class="tool-call-table">
+          <tbody>
+            @for (entry of getArgEntries(toolCall.args); track entry[0]) {
+              <tr>
+                <td class="arg-key">{{ entry[0] }}</td>
+                <td class="arg-value">
+                  @if (isComplexValue(entry[1])) {
+                    <code class="arg-complex">{{ formatValue(entry[1]) }}</code>
+                  } @else {
+                    <span class="arg-simple">{{ formatValue(entry[1]) }}</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <code class="empty-args">{{ '{}' }}</code>
+      }
+    </div>
+  }
+</div> 

@@ -1,0 +1,61 @@
+<div class="tool-result-container">
+  <div class="tool-result">
+    <div class="tool-result-header">
+      <div class="header-content">
+        @if (message.name) {
+          <h3 class="result-title">
+            Tool Result: 
+            <code class="tool-name">{{ message.name }}</code>
+          </h3>
+        } @else {
+          <h3 class="result-title">Tool Result</h3>
+        }
+        @if (message.tool_call_id) {
+          <code class="tool-call-id">{{ message.tool_call_id }}</code>
+        }
+      </div>
+    </div>
+    
+    <div class="tool-result-content">
+      <div class="content-wrapper">
+        @if (isJsonContent) {
+          <table class="result-table">
+            <tbody>
+              @for (item of displayedParsedContent; track getEntryKey(item, $index)) {
+                <tr>
+                  <td class="result-key">{{ getEntryKey(item, $index) }}</td>
+                  <td class="result-value">
+                    @if (isComplexValue(getEntryValue(item, $index))) {
+                      <code class="value-complex">{{ formatValue(getEntryValue(item, $index)) }}</code>
+                    } @else {
+                      <span class="value-simple">{{ formatValue(getEntryValue(item, $index)) }}</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <code class="content-text">{{ displayedContent }}</code>
+        }
+      </div>
+      
+      @if (shouldShowExpandButton) {
+        <button 
+          class="expand-button"
+          (click)="toggleExpanded()"
+          type="button">
+          @if (isExpanded()) {
+            <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m18 15-6-6-6 6"/>
+            </svg>
+          } @else {
+            <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          }
+        </button>
+      }
+    </div>
+  </div>
+</div> 

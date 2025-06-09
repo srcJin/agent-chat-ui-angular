@@ -168,4 +168,14 @@ export class ThreadComponent implements OnInit, OnDestroy {
       });
     }
   }
+
+  // Add sample tool call data for testing
+  loadSampleToolCalls() {
+    const sampleAIMessage = this.clientService.createSampleToolCallMessage();
+    const sampleToolResult = this.clientService.createSampleToolResultMessage();
+    
+    // Add messages to current stream
+    const currentMessages = this.streamService.messages();
+    this.streamService.setMessages([...currentMessages, sampleAIMessage, sampleToolResult]);
+  }
 }

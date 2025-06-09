@@ -1,0 +1,234 @@
+.tool-result-container {
+  display: grid;
+  max-width: 768px;
+  margin: 0 auto;
+  gap: 0.5rem;
+}
+
+.tool-result {
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+  background: var(--background-primary);
+}
+
+.tool-result-header {
+  padding: 0.5rem 1rem;
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.header-content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.result-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.tool-name {
+  background: var(--background-muted);
+  color: var(--text-secondary);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-family: var(--font-mono, monospace);
+  margin-left: 0.25rem;
+}
+
+.tool-call-id {
+  background: var(--background-muted);
+  color: var(--text-secondary);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-family: var(--font-mono, monospace);
+}
+
+.tool-result-content {
+  background: var(--background-muted);
+  min-width: 100%;
+}
+
+.content-wrapper {
+  padding: 0.75rem;
+}
+
+.result-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.result-table tbody tr {
+  border-bottom: 1px solid var(--border-light);
+}
+
+.result-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.result-key {
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.result-value {
+  padding: 0.5rem 1rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  vertical-align: top;
+  word-break: break-all;
+}
+
+.value-complex {
+  display: block;
+  background: var(--background-secondary);
+  color: var(--text-secondary);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  word-break: break-all;
+}
+
+.value-simple {
+  font-family: inherit;
+}
+
+.content-text {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-family: var(--font-mono, monospace);
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.5;
+}
+
+.expand-button {
+  display: flex;
+  width: 100%;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-top: 1px solid var(--border-color);
+  padding: 0.5rem;
+  color: var(--text-secondary);
+  background: var(--background-secondary);
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    background: var(--background-muted);
+    color: var(--text-primary);
+    transform: scale(1.02);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.expand-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .tool-result-container {
+    max-width: 100%;
+  }
+
+  .tool-result-header {
+    padding: 0.375rem 0.75rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .result-title {
+    font-size: 0.8rem;
+  }
+
+  .tool-name,
+  .tool-call-id {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.375rem;
+  }
+
+  .content-wrapper {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .result-key,
+  .result-value {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .value-complex {
+    font-size: 0.65rem;
+    padding: 0.375rem;
+  }
+
+  .content-text {
+    font-size: 0.8rem;
+  }
+
+  .expand-button {
+    padding: 0.375rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .result-table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  .result-table tbody,
+  .result-table tr,
+  .result-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .result-table tr {
+    border-bottom: 1px solid var(--border-light);
+    padding: 0.5rem 0;
+  }
+
+  .result-key {
+    font-weight: 600;
+    color: var(--text-primary);
+    padding: 0 0 0.25rem 0;
+    width: 100%;
+  }
+
+  .result-value {
+    padding: 0;
+    width: 100%;
+  }
+
+  .value-complex {
+    margin-top: 0.25rem;
+  }
+} 

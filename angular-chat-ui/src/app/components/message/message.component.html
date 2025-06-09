@@ -23,15 +23,7 @@
   <div class="content">
     <!-- Tool message display -->
     <div *ngIf="isTool" class="tool-message">
-      <div class="tool-header">
-        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-        </svg>
-        <span class="tool-name">Tool Result</span>
-      </div>
-      <div class="tool-content">
-        <pre class="tool-result">{{ textContent }}</pre>
-      </div>
+      <app-tool-result [message]="message"></app-tool-result>
     </div>
 
     <!-- Regular message content -->
@@ -88,18 +80,8 @@
     </div>
 
     <!-- Tool calls display for AI messages -->
-          <div *ngIf="hasToolCalls && !isTool && !hideToolCalls" class="tool-calls">
-      <div *ngFor="let toolCall of toolCalls" class="tool-call">
-        <div class="tool-call-header">
-          <svg class="tool-call-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-          </svg>
-          <span class="tool-call-name">{{ toolCall.name }}</span>
-        </div>
-        <div *ngIf="hasKeys(toolCall.args)" class="tool-call-args">
-          <pre>{{ formatToolCallArgs(toolCall.args) }}</pre>
-        </div>
-      </div>
+    <div *ngIf="hasToolCalls && !isTool && !hideToolCalls" class="tool-calls">
+      <app-tool-calls [toolCalls]="toolCalls"></app-tool-calls>
     </div>
     
     <!-- Actions -->

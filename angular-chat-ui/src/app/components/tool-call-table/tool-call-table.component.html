@@ -1,0 +1,19 @@
+<div class="tool-call-table-container">
+  <table class="tool-call-table">
+    <thead>
+      <tr>
+        <th colspan="2" class="table-header">
+          {{ toolCall.name }}
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (entry of getArgEntries(); track entry[0]) {
+        <tr class="table-row">
+          <td class="arg-key">{{ entry[0] }}</td>
+          <td class="arg-value">{{ formatValue(entry[1]) }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div> 

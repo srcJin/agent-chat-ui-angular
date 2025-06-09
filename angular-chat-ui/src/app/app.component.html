@@ -26,15 +26,19 @@
     </div>
   }
 } @else {
-  <div class="app-layout">
-    <!-- Thread History Sidebar -->
-    <app-thread-history></app-thread-history>
-    
-    <!-- Main Content Area -->
-    <div class="main-content">
-      <app-thread (settingsRequested)="onSettingsRequested()"></app-thread>
+  <!-- Main application background -->
+  <div class="app-background">
+    <div class="background-content">
+      <div class="app-branding">
+        <span class="logo">LG</span>
+        <h1 class="app-title">Agent Chat</h1>
+        <p class="app-subtitle">Your AI assistant is available in the floating chat panel</p>
+      </div>
     </div>
   </div>
+
+  <!-- Floating Chat Panel -->
+  <app-floating-chat (settingsRequested)="onSettingsRequested()"></app-floating-chat>
   
   <!-- Settings Modal -->
   @if (showSettings()) {
@@ -44,14 +48,4 @@
       (close)="onSettingsClose()"
     ></app-settings-modal>
   }
-  
-  <!-- Debug panel for development -->
-  <div class="debug-panel">
-    <button 
-      (click)="resetConfiguration()"
-      class="debug-button"
-    >
-      Reset Config
-    </button>
-  </div>
 }

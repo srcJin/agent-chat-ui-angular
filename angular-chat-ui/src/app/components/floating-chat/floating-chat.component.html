@@ -1,0 +1,139 @@
+@if (isVisible()) {
+  <div class="floating-chat-panel">
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="header-content">
+        <div class="chat-title">
+          <span class="logo">AI</span>
+          <h3>Agent Chat</h3>
+        </div>
+        <div class="header-actions">
+          <button 
+            class="btn-action"
+            (click)="onSettings()"
+            title="Settings">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </button>
+          <button 
+            class="btn-action"
+            (click)="onNewChat()"
+            title="New chat">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+          <button 
+            class="btn-action btn-minimize"
+            (click)="toggleVisibility()"
+            title="Minimize">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6,9 12,15 18,9"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Content -->
+    <div class="chat-content">
+      <!-- Welcome State -->
+      @if (!chatStarted()) {
+        <div class="welcome-state">
+          <div class="welcome-avatar">
+            <span class="avatar-text">AI</span>
+          </div>
+          <h4 class="welcome-title">How can I help you today?</h4>
+          <p class="welcome-subtitle">Ask me anything or start a conversation</p>
+        </div>
+      }
+
+      <!-- Messages -->
+      @if (chatStarted()) {
+        <div class="messages-container">
+          @for (message of streamService.messages(); track trackMessage($index, message)) {
+            <app-message 
+              [message]="message"
+              [isLoading]="streamService.isLoading()"
+              [isLastMessage]="$index === streamService.messages().length - 1"
+              [hideToolCalls]="threadService.hideToolCalls()"
+              (regenerate)="onRegenerate($event)"
+              (editMessage)="onEditMessage($event)">
+            </app-message>
+          }
+          
+          <!-- Loading indicator -->
+          @if (streamService.isLoading() && !firstTokenReceived()) {
+            <div class="loading-message">
+              <div class="loading-avatar">
+                <span class="avatar-text">AI</span>
+              </div>
+              <div class="loading-content">
+                <div class="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Input Area -->
+      <div class="input-section">
+        <form (ngSubmit)="onSubmit()" class="input-form">
+          <div class="input-wrapper">
+            <textarea
+              [value]="input()"
+              (input)="input.set($any($event.target).value)"
+              (keydown)="onKeyDown($event)"
+              placeholder="Type your message..."
+              class="message-input"
+              [disabled]="streamService.isLoading()"
+              rows="1"
+            ></textarea>
+            
+            @if (streamService.isLoading()) {
+              <button
+                type="button"
+                (click)="onStop()"
+                class="btn-send btn-stop"
+                title="Stop">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="6" y="6" width="12" height="12" rx="2" ry="2"/>
+                </svg>
+              </button>
+            } @else {
+              <button
+                type="submit"
+                [disabled]="!input().trim()"
+                class="btn-send"
+                title="Send message">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>
+                </svg>
+              </button>
+            }
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Toggle button when hidden -->
+@if (!isVisible()) {
+  <button 
+    class="chat-toggle-btn"
+    (click)="toggleVisibility()"
+    title="Open chat">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
+  </button>
+} 

@@ -1,16 +1,15 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SetupFormComponent, type SetupConfig } from './components/setup-form/setup-form.component';
-import { ThreadComponent } from './components/thread/thread.component';
-import { ThreadHistoryComponent } from './components/thread/history/thread-history.component';
 import { SettingsModalComponent } from './components/settings-modal/settings-modal.component';
+import { FloatingChatComponent } from './components/floating-chat/floating-chat.component';
 import { StreamService } from './services/stream.service';
 import { ThreadService } from './services/thread.service';
 import { LanggraphClientService } from './services/langgraph-client.service';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, SetupFormComponent, ThreadComponent, ThreadHistoryComponent, SettingsModalComponent],
+  imports: [CommonModule, SetupFormComponent, SettingsModalComponent, FloatingChatComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

@@ -1,0 +1,40 @@
+@if (!isConfigured()) {
+  <app-setup-form (configSubmit)="onConfigSubmit($event)"></app-setup-form>
+  
+  @if (isConnecting()) {
+    <div class="loading-overlay">
+      <div class="loading-dialog">
+        <div class="loading-content">
+          <div class="loading-spinner"></div>
+          <span>Connecting to LangGraph server...</span>
+        </div>
+      </div>
+    </div>
+  }
+  
+  @if (connectionError()) {
+    <div class="error-toast">
+      <div class="error-content">
+        <svg class="error-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+        </svg>
+        <div>
+          <h4 class="error-title">Connection Error</h4>
+          <p class="error-message">{{ connectionError() }}</p>
+        </div>
+      </div>
+    </div>
+  }
+} @else {
+  <app-thread></app-thread>
+  
+  <!-- Debug panel for development -->
+  <div class="debug-panel">
+    <button 
+      (click)="resetConfiguration()"
+      class="debug-button"
+    >
+      Reset Config
+    </button>
+  </div>
+}

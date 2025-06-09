@@ -1,0 +1,113 @@
+/* App Component Styles */
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.loading-dialog {
+  background: var(--background-primary);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  max-width: 28rem;
+  width: 100%;
+  margin: 0 1rem;
+  box-shadow: var(--shadow-lg);
+}
+
+.loading-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.loading-spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--primary-color);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.error-toast {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  max-width: 28rem;
+  box-shadow: var(--shadow);
+}
+
+.error-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.error-icon {
+  height: 1.25rem;
+  width: 1.25rem;
+  color: #f87171;
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
+.error-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #991b1b;
+  margin: 0;
+}
+
+.error-message {
+  font-size: 0.875rem;
+  color: #7f1d1d;
+  margin: 0.25rem 0 0 0;
+  line-height: 1.4;
+}
+
+.debug-panel {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  background: var(--background-secondary);
+  border-radius: var(--border-radius);
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  opacity: 0.5;
+  transition: opacity 0.15s ease-in-out;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.debug-button {
+  color: var(--primary-color);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

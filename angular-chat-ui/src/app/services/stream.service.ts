@@ -86,8 +86,16 @@ export class StreamService {
     this.clientService.configure(apiUrl, apiKey);
   }
 
+  getAssistantId(): string | undefined {
+    return this.assistantId;
+  }
+
   setThreadId(threadId: string | null) {
     this._threadId.set(threadId);
+  }
+
+  setMessages(messages: Message[]) {
+    this._messages.set(messages);
   }
 
   private handleUpdate(update: StreamUpdateType) {

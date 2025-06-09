@@ -24,53 +24,85 @@ export class ThreadComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    // Initial setup or load existing thread if needed
+    // Load existing threads when component initializes
+    this.loadThreads();
   }
 
   ngOnDestroy() {
     this.streamService.stop();
   }
 
+  private async loadThreads() {
+    try {
+      const assistantId = this.streamService.getAssistantId();
+      if (assistantId) {
+        await this.threadService.getThreads(assistantId);
+      }
+    } catch (error) {
+      console.error('Error loading threads:', error);
+    }
+  }
+
+  onKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+        this.onSubmit();
+      }
+    }
+  }
+
+  trackMessage(index: number, message: Message): string {
+    return message.id || `message-${index}`;
+  }
+
   async onSubmit() {
-    const inputText = this.input();
-    if (!inputText.trim() || this.streamService.isLoading()) return;
+    const content = this.input().trim();
+    if (!content || this.streamService.isLoading()) return;
 
     this.firstTokenReceived.set(false);
+    this.input.set('');
 
-    const newHumanMessage: Message = {
+    const userMessage: Message = {
       id: uuidv4(),
       type: 'human',
-      content: inputText,
+      content
     };
 
-    const context = Object.keys(this.streamService.context()).length > 0 
-      ? this.streamService.context() 
-      : undefined;
-
-    await this.streamService.submit(
-      { 
-        messages: [...this.streamService.messages(), newHumanMessage],
-        context 
-      },
-      {
-        streamMode: ['values'],
-        optimisticValues: (prev) => ({
-          ...prev,
-          context,
-          messages: [...(prev.messages || []), newHumanMessage],
-        }),
-      }
-    );
-
-    this.input.set('');
+    try {
+      await this.streamService.submit(
+        { messages: [userMessage] },
+        {
+          optimisticValues: (prev) => ({
+            ...prev,
+            messages: [...prev.messages, userMessage]
+          })
+        }
+      );
+      
+      this.firstTokenReceived.set(true);
+      
+      // Refresh threads list after successful submission
+      await this.loadThreads();
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
   }
 
   async onRegenerate(parentCheckpoint: Checkpoint | null | undefined) {
-    this.firstTokenReceived.set(false);
-    await this.streamService.submit(undefined, {
-      checkpoint: parentCheckpoint,
-      streamMode: ['values'],
-    });
+    if (this.streamService.isLoading()) return;
+
+    try {
+      await this.streamService.submit(
+        undefined,
+        {
+          checkpoint: parentCheckpoint
+        }
+      );
+      this.firstTokenReceived.set(true);
+    } catch (error) {
+      console.error('Error regenerating:', error);
+    }
   }
 
   onStop() {
@@ -78,24 +110,12 @@ export class ThreadComponent implements OnInit, OnDestroy {
   }
 
   onNewThread() {
-    this.streamService.setThreadId(null);
-    this.streamService.reset();
+    this.threadService.createNewThread();
+    this.input.set('');
+    this.firstTokenReceived.set(false);
   }
 
   get chatStarted(): boolean {
     return !!this.streamService.threadId() || this.streamService.messages().length > 0;
-  }
-
-  trackMessage(index: number, message: Message): string {
-    // Use a combination of index and id to ensure uniqueness
-    // Also consider content hash for better tracking
-    return `${index}-${message.id}-${message.type}-${typeof message.content === 'string' ? message.content.slice(0, 50) : 'complex'}`;
-  }
-
-  onKeyDown(event: KeyboardEvent) {
-    if (event.key === 'Enter' && !event.shiftKey && !event.metaKey) {
-      event.preventDefault();
-      this.onSubmit();
-    }
   }
 }

@@ -2,13 +2,14 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SetupFormComponent, type SetupConfig } from './components/setup-form/setup-form.component';
 import { ThreadComponent } from './components/thread/thread.component';
+import { ThreadHistoryComponent } from './components/thread/history/thread-history.component';
 import { StreamService } from './services/stream.service';
 import { ThreadService } from './services/thread.service';
 import { LanggraphClientService } from './services/langgraph-client.service';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, SetupFormComponent, ThreadComponent],
+  imports: [CommonModule, SetupFormComponent, ThreadComponent, ThreadHistoryComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
@@ -25,20 +26,17 @@ export class AppComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    // Check for saved configuration in localStorage
-    this.loadSavedConfig();
-  }
+    // Check for existing configuration in localStorage
+    const apiUrl = localStorage.getItem('lg:chat:apiUrl');
+    const assistantId = localStorage.getItem('lg:chat:assistantId');
+    const apiKey = localStorage.getItem('lg:chat:apiKey');
 
-  private loadSavedConfig() {
-    const savedApiUrl = localStorage.getItem('lg:chat:apiUrl');
-    const savedAssistantId = localStorage.getItem('lg:chat:assistantId');
-    const savedApiKey = localStorage.getItem('lg:chat:apiKey');
-
-    if (savedApiUrl && savedAssistantId) {
+    if (apiUrl && assistantId) {
+      // Auto-configure with stored values
       this.onConfigSubmit({
-        apiUrl: savedApiUrl,
-        assistantId: savedAssistantId,
-        apiKey: savedApiKey || undefined
+        apiUrl,
+        assistantId,
+        apiKey: apiKey || undefined
       });
     }
   }
@@ -72,7 +70,7 @@ export class AppComponent implements OnInit {
       
       // Load threads if possible
       try {
-        await this.threadService.getThreads();
+        await this.threadService.getThreads(config.assistantId);
       } catch (error) {
         console.warn('Could not load threads:', error);
       }
@@ -91,7 +89,7 @@ export class AppComponent implements OnInit {
     localStorage.removeItem('lg:chat:assistantId');
     localStorage.removeItem('lg:chat:apiKey');
     this.isConfigured.set(false);
-    this.connectionError.set(null);
     this.streamService.reset();
+    this.threadService.setThreads([]);
   }
 }

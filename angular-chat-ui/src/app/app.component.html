@@ -26,7 +26,15 @@
     </div>
   }
 } @else {
-  <app-thread></app-thread>
+  <div class="app-layout">
+    <!-- Thread History Sidebar -->
+    <app-thread-history></app-thread-history>
+    
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <app-thread></app-thread>
+    </div>
+  </div>
   
   <!-- Debug panel for development -->
   <div class="debug-panel">

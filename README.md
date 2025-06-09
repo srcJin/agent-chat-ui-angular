@@ -1,1 +1,1 @@
-# agent-chat-ui-react
+# agent-chat-ui-angular

@@ -2,6 +2,9 @@
 
 This repository contains both React and Angular implementations of a LangGraph chatbot UI, allowing for direct comparison and reuse of core functionality between the two frameworks.
 
+![screenshot](image.png)
+
+
 ## Repository Structure
 
 ```

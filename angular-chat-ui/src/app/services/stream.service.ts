@@ -186,7 +186,11 @@ export class StreamService {
       const stream = await this.clientService.streamRun(
         threadId,
         this.assistantId!,
-        input || {}
+        input || {},
+        {
+          checkpoint: options?.checkpoint,
+          streamMode: options?.streamMode || ['values']
+        }
       );
 
       for await (const chunk of stream) {

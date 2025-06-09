@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { SetupFormComponent, type SetupConfig } from './components/setup-form/setup-form.component';
 import { ThreadComponent } from './components/thread/thread.component';
 import { ThreadHistoryComponent } from './components/thread/history/thread-history.component';
+import { SettingsModalComponent } from './components/settings-modal/settings-modal.component';
 import { StreamService } from './services/stream.service';
 import { ThreadService } from './services/thread.service';
 import { LanggraphClientService } from './services/langgraph-client.service';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, SetupFormComponent, ThreadComponent, ThreadHistoryComponent],
+  imports: [CommonModule, SetupFormComponent, ThreadComponent, ThreadHistoryComponent, SettingsModalComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
@@ -18,6 +19,12 @@ export class AppComponent implements OnInit {
   isConfigured = signal(false);
   isConnecting = signal(false);
   connectionError = signal<string | null>(null);
+  showSettings = signal(false);
+  currentConfig = signal<SetupConfig>({
+    apiUrl: '',
+    assistantId: '',
+    apiKey: ''
+  });
 
   constructor(
     private streamService: StreamService,
@@ -55,6 +62,9 @@ export class AppComponent implements OnInit {
         localStorage.removeItem('lg:chat:apiKey');
       }
 
+      // Update current config
+      this.currentConfig.set(config);
+
       // Check connection to the graph
       const isConnected = await this.clientService.checkGraphStatus(config.apiUrl, config.apiKey);
       
@@ -76,6 +86,7 @@ export class AppComponent implements OnInit {
       }
 
       this.isConfigured.set(true);
+      this.showSettings.set(false); // Close settings if open
     } catch (error) {
       console.error('Configuration error:', error);
       this.connectionError.set('An error occurred while connecting. Please try again.');
@@ -84,12 +95,30 @@ export class AppComponent implements OnInit {
     }
   }
 
+  onSettingsRequested() {
+    this.showSettings.set(true);
+  }
+
+  onSettingsClose() {
+    this.showSettings.set(false);
+  }
+
+  async onSettingsSave(config: SetupConfig) {
+    await this.onConfigSubmit(config);
+  }
+
   resetConfiguration() {
     localStorage.removeItem('lg:chat:apiUrl');
     localStorage.removeItem('lg:chat:assistantId');
     localStorage.removeItem('lg:chat:apiKey');
     this.isConfigured.set(false);
+    this.showSettings.set(false);
     this.streamService.reset();
     this.threadService.setThreads([]);
+    this.currentConfig.set({
+      apiUrl: '',
+      assistantId: '',
+      apiKey: ''
+    });
   }
 }

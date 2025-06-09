@@ -32,9 +32,18 @@
     
     <!-- Main Content Area -->
     <div class="main-content">
-      <app-thread></app-thread>
+      <app-thread (settingsRequested)="onSettingsRequested()"></app-thread>
     </div>
   </div>
+  
+  <!-- Settings Modal -->
+  @if (showSettings()) {
+    <app-settings-modal 
+      [currentConfig]="currentConfig()"
+      (configSave)="onSettingsSave($event)"
+      (close)="onSettingsClose()"
+    ></app-settings-modal>
+  }
   
   <!-- Debug panel for development -->
   <div class="debug-panel">

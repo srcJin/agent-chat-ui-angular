@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StreamService } from '../../services/stream.service';
@@ -16,6 +16,8 @@ import { v4 as uuidv4 } from 'uuid';
 export class ThreadComponent implements OnInit, OnDestroy {
   input = signal('');
   firstTokenReceived = signal(false);
+  
+  @Output() settingsRequested = new EventEmitter<void>();
 
   constructor(
     public streamService: StreamService,
@@ -115,7 +117,48 @@ export class ThreadComponent implements OnInit, OnDestroy {
     this.firstTokenReceived.set(false);
   }
 
+  onSettings() {
+    this.settingsRequested.emit();
+  }
+
   get chatStarted(): boolean {
     return !!this.streamService.threadId() || this.streamService.messages().length > 0;
+  }
+
+  async onEditMessage(event: {originalMessage: Message, newContent: string}) {
+    if (this.streamService.isLoading()) return;
+    
+    const { originalMessage, newContent } = event;
+    
+    // Find the index of the original message
+    const messages = this.streamService.messages();
+    const messageIndex = messages.findIndex(m => m.id === originalMessage.id);
+    
+    if (messageIndex !== -1) {
+      // Get all messages up to (but not including) the edited message
+      const messagesBeforeEdit = messages.slice(0, messageIndex);
+      
+      // Create the new edited message
+      const newMessage: Message = {
+        id: `human_${Date.now()}`,
+        type: 'human',
+        content: newContent
+      };
+      
+      // Create the complete new conversation with the edit
+      const newConversation = [...messagesBeforeEdit, newMessage];
+      
+      // Clear current thread to start fresh
+      this.streamService.reset();
+      
+      // Set the edited conversation state optimistically
+      this.streamService.setMessages(newConversation);
+      
+      // Submit as a new conversation - this ensures clean state
+      // The server will create a new thread and generate responses from the edited message
+      await this.streamService.submit({
+        messages: newConversation
+      });
+    }
   }
 }

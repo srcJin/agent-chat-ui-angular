@@ -50,24 +50,34 @@ export class LanggraphClientService {
   async streamRun(
     threadId: string,
     assistantId: string,
-    input: any
+    input: any,
+    options?: {
+      checkpoint?: Checkpoint | null;
+      streamMode?: string[];
+    }
   ): Promise<AsyncIterable<any>> {
     if (!this.client) {
       throw new Error('Client not configured');
+    }
+
+    // Prepare run options
+    const runOptions: any = {
+      input,
+      streamMode: options?.streamMode || ['values']
+    };
+
+    // Add checkpoint if provided
+    if (options?.checkpoint) {
+      runOptions.checkpointId = options.checkpoint.checkpoint_id;
     }
 
     // Use the official LangGraph SDK stream method
     return this.client.runs.stream(
       threadId,
       assistantId,
-      {
-        input,
-        streamMode: ['values']
-      }
+      runOptions
     );
   }
-
-
 
   async getThreads(assistantId?: string): Promise<any[]> {
     if (!this.client) {

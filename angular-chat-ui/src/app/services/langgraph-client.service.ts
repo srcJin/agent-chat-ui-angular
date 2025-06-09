@@ -133,4 +133,18 @@ export class LanggraphClientService {
     
     return thread.thread_id;
   }
+
+  async deleteThread(threadId: string): Promise<void> {
+    if (!this.client) {
+      throw new Error('Client not configured');
+    }
+
+    try {
+      // Use the official LangGraph SDK delete method
+      await this.client.threads.delete(threadId);
+    } catch (error) {
+      console.error('Error deleting thread:', error);
+      throw error;
+    }
+  }
 }

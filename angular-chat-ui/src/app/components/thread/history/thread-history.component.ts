@@ -1,98 +1,113 @@
-import { Component, OnInit, signal, computed, HostListener } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ThreadService } from '../../../services/thread.service';
-import { StreamService } from '../../../services/stream.service';
-import { type Thread } from '../../../services/langgraph-client.service';
+import { ThreadService, ThreadHistoryItem } from '../../../services/thread.service';
 
 @Component({
   selector: 'app-thread-history',
+  standalone: true,
   imports: [CommonModule],
   template: `
-    <!-- Desktop Sidebar -->
-    <div class="thread-history-sidebar" [class.collapsed]="sidebarCollapsed()">
-      <div class="sidebar-header">
-        <button 
-          (click)="toggleSidebar()" 
-          class="sidebar-toggle"
-          [attr.aria-label]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
-        >
-          @if (sidebarCollapsed()) {
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M9 18l6-6-6-6"/>
+    <div class="thread-history-container">
+      <!-- Desktop sidebar -->
+      <div class="desktop-sidebar" [class.open]="threadService.chatHistoryOpen()">
+        <div class="sidebar-header">
+          <button 
+            class="toggle-button"
+            (click)="threadService.toggleChatHistory()"
+            title="Toggle thread history">
+            <svg 
+              class="icon" 
+              [class.rotate]="threadService.chatHistoryOpen()"
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M15 19l-7-7 7-7"/>
             </svg>
-          } @else {
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M15 18l-6-6 6-6"/>
-            </svg>
-          }
-        </button>
-        
-        @if (!sidebarCollapsed()) {
+          </button>
           <h1 class="sidebar-title">Thread History</h1>
-        }
-      </div>
-
-      @if (!sidebarCollapsed()) {
-        <div class="sidebar-content">
+        </div>
+        
+        <div class="thread-list">
           @if (threadService.threadsLoading()) {
-            <!-- Loading Skeleton -->
-            <div class="thread-loading">
-              @for (_ of loadingItems; track $index) {
-                <div class="thread-skeleton"></div>
+            <div class="loading-list">
+              @for (item of skeletonItems(); track $index) {
+                <div class="skeleton-item"></div>
               }
             </div>
           } @else {
-            <!-- Thread List -->
-            <div class="thread-list">
+            <div class="thread-items">
               @for (thread of threadService.threads(); track thread.thread_id) {
                 <div class="thread-item-wrapper">
-                  <button
-                    (click)="onThreadClick(thread.thread_id)"
+                  <button 
                     class="thread-item"
                     [class.active]="thread.thread_id === threadService.currentThreadId()"
-                    [title]="threadService.getThreadDisplayText(thread)"
-                  >
-                    <p class="thread-text">{{ threadService.getThreadDisplayText(thread) }}</p>
+                    (click)="selectThread(thread.thread_id)"
+                    [title]="getThreadTitle(thread)">
+                    <p class="thread-text">{{ getThreadTitle(thread) }}</p>
+                  </button>
+                  <button 
+                    class="delete-button"
+                    (click)="onDeleteThread($event, thread.thread_id)"
+                    title="Delete thread">
+                    <svg class="icon delete-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
                   </button>
                 </div>
               }
             </div>
           }
         </div>
-      }
-    </div>
+      </div>
 
-    <!-- Mobile Overlay (for mobile responsive support) -->
-    @if (isSmallScreen() && mobileMenuOpen()) {
-      <div class="mobile-overlay" (click)="closeMobileMenu()">
-        <div class="mobile-sidebar" (click)="$event.stopPropagation()">
+      <!-- Mobile overlay (for future mobile support) -->
+      <div 
+        class="mobile-overlay"
+        [class.visible]="threadService.chatHistoryOpen()"
+        (click)="threadService.closeChatHistory()">
+        <div 
+          class="mobile-sidebar"
+          (click)="$event.stopPropagation()">
           <div class="mobile-header">
             <h2 class="mobile-title">Thread History</h2>
-            <button (click)="closeMobileMenu()" class="mobile-close">
-              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
+            <button 
+              class="close-button"
+              (click)="threadService.closeChatHistory()">
+              <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M6 18L18 6M6 6l12 12"/>
               </svg>
             </button>
           </div>
           
-          <div class="mobile-content">
+          <div class="thread-list">
             @if (threadService.threadsLoading()) {
-              <div class="thread-loading">
-                @for (_ of loadingItems; track $index) {
-                  <div class="thread-skeleton"></div>
+              <div class="loading-list">
+                @for (item of skeletonItems(); track $index) {
+                  <div class="skeleton-item"></div>
                 }
               </div>
             } @else {
-              <div class="thread-list">
+              <div class="thread-items">
                 @for (thread of threadService.threads(); track thread.thread_id) {
                   <div class="thread-item-wrapper">
-                    <button
-                      (click)="onThreadClick(thread.thread_id); closeMobileMenu()"
+                    <button 
                       class="thread-item"
                       [class.active]="thread.thread_id === threadService.currentThreadId()"
-                    >
-                      <p class="thread-text">{{ threadService.getThreadDisplayText(thread) }}</p>
+                      (click)="selectThreadMobile(thread.thread_id)"
+                      [title]="getThreadTitle(thread)">
+                      <p class="thread-text">{{ getThreadTitle(thread) }}</p>
+                    </button>
+                    <button 
+                      class="delete-button"
+                      (click)="onDeleteThread($event, thread.thread_id)"
+                      title="Delete thread">
+                      <svg class="icon delete-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                      </svg>
                     </button>
                   </div>
                 }
@@ -101,66 +116,45 @@ import { type Thread } from '../../../services/langgraph-client.service';
           </div>
         </div>
       </div>
-    }
+    </div>
   `,
   styleUrl: './thread-history.component.scss'
 })
 export class ThreadHistoryComponent implements OnInit {
-  sidebarCollapsed = signal(false);
-  mobileMenuOpen = signal(false);
-  isSmallScreen = signal(false);
+  readonly threadService = inject(ThreadService);
   
-  // Create array for loading skeleton
-  loadingItems = Array.from({ length: 8 });
+  // Generate skeleton loading items
+  readonly skeletonItems = signal(Array.from({ length: 10 }, (_, i) => i));
 
-  constructor(
-    public threadService: ThreadService,
-    private streamService: StreamService
-  ) {}
-
-  ngOnInit() {
-    this.checkScreenSize();
-    this.loadThreads();
+  ngOnInit(): void {
+    // Load threads when component initializes
+    this.threadService.loadThreadHistory();
   }
 
-  @HostListener('window:resize', ['$event'])
-  onResize() {
-    this.checkScreenSize();
+  selectThread(threadId: string): void {
+    this.threadService.selectThread(threadId);
   }
 
-  private checkScreenSize() {
-    this.isSmallScreen.set(window.innerWidth < 1024);
+  selectThreadMobile(threadId: string): void {
+    this.threadService.selectThread(threadId);
+    // Close mobile sidebar after selection
+    this.threadService.closeChatHistory();
+  }
+
+  getThreadTitle(thread: any): string {
+    return this.threadService.getThreadDisplayText(thread);
+  }
+
+  async onDeleteThread(event: Event, threadId: string) {
+    event.stopPropagation(); // Prevent thread selection when clicking delete
     
-    // Auto-collapse sidebar on small screens
-    if (this.isSmallScreen()) {
-      this.sidebarCollapsed.set(true);
-    }
-  }
-
-  private async loadThreads() {
-    try {
-      const assistantId = this.streamService.getAssistantId();
-      if (assistantId) {
-        await this.threadService.getThreads(assistantId);
+    const confirmed = confirm('Are you sure you want to delete this thread? This action cannot be undone.');
+    if (confirmed) {
+      try {
+        await this.threadService.deleteThread(threadId);
+      } catch (error) {
+        alert('Failed to delete thread. Please try again.');
       }
-    } catch (error) {
-      console.error('Error loading threads:', error);
     }
-  }
-
-  toggleSidebar() {
-    if (this.isSmallScreen()) {
-      this.mobileMenuOpen.set(!this.mobileMenuOpen());
-    } else {
-      this.sidebarCollapsed.set(!this.sidebarCollapsed());
-    }
-  }
-
-  closeMobileMenu() {
-    this.mobileMenuOpen.set(false);
-  }
-
-  onThreadClick(threadId: string) {
-    this.threadService.switchToThread(threadId);
   }
 } 

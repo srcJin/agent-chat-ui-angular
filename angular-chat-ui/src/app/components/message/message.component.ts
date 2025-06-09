@@ -13,6 +13,7 @@ export class MessageComponent {
   @Input() message!: Message;
   @Input() isLoading = false;
   @Input() isLastMessage = false;
+  @Input() hideToolCalls = false;
   @Output() regenerate = new EventEmitter<Checkpoint | null | undefined>();
   @Output() editMessage = new EventEmitter<{originalMessage: Message, newContent: string}>();
 

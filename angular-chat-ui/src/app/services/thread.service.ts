@@ -2,6 +2,15 @@ import { Injectable, signal, computed } from '@angular/core';
 import { LanggraphClientService, type Thread } from './langgraph-client.service';
 import { StreamService } from './stream.service';
 
+export interface ThreadHistoryItem {
+  thread_id: string;
+  created_at: string;
+  values?: {
+    messages?: any[];
+  };
+  metadata?: Record<string, any>;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -14,10 +23,73 @@ export class ThreadService {
   threadsLoading = computed(() => this._threadsLoading());
   currentThreadId = computed(() => this._currentThreadId());
 
+  // Thread history state
+  private threadsSignal = signal<ThreadHistoryItem[]>([]);
+  private threadsLoadingSignal = signal(false);
+  private chatHistoryOpenSignal = signal(false);
+  private hideToolCallsSignal = signal(false);
+  
+  // Advanced features signals
+  readonly threadsHistory = this.threadsSignal.asReadonly();
+  readonly threadsLoadingHistory = this.threadsLoadingSignal.asReadonly();
+  readonly chatHistoryOpen = this.chatHistoryOpenSignal.asReadonly();
+  readonly hideToolCalls = this.hideToolCallsSignal.asReadonly();
+
+  // Computed values
+  readonly chatStarted = computed(() => {
+    const currentThreadId = this.streamService.threadId();
+    const messages = this.streamService.messages();
+    return !!currentThreadId || messages.length > 0;
+  });
+
   constructor(
     private clientService: LanggraphClientService,
     private streamService: StreamService
-  ) {}
+  ) {
+    // Load threads automatically when the service is initialized
+    this.initializeThreads();
+  }
+
+  private async initializeThreads() {
+    // Wait a bit for any configuration to be set up
+    setTimeout(async () => {
+      const assistantId = this.streamService.getAssistantId();
+      if (assistantId) {
+        await this.getThreads(assistantId);
+      }
+    }, 100);
+  }
+
+  // Call this when configuration is updated (e.g., from settings)
+  async onConfigurationUpdated() {
+    const assistantId = this.streamService.getAssistantId();
+    if (assistantId) {
+      await this.getThreads(assistantId);
+    }
+  }
+
+  // Delete a thread
+  async deleteThread(threadId: string): Promise<void> {
+    try {
+      // Delete the thread from the server
+      await this.clientService.deleteThread(threadId);
+      
+      // Remove the thread from the local list
+      const currentThreads = this._threads();
+      const updatedThreads = currentThreads.filter(thread => thread.thread_id !== threadId);
+      this._threads.set(updatedThreads);
+      
+      // If we deleted the current thread, reset the current thread ID
+      if (this._currentThreadId() === threadId) {
+        this.setCurrentThreadId(null);
+        // Reset messages since current thread is deleted
+        this.streamService.reset();
+      }
+    } catch (error) {
+      console.error('Error deleting thread:', error);
+      throw error;
+    }
+  }
 
   async getThreads(assistantId?: string): Promise<Thread[]> {
     try {
@@ -63,8 +135,8 @@ export class ThreadService {
     // Stop any current stream
     this.streamService.stop();
     
-    // Reset the stream state and set new thread
-    this.streamService.reset();
+    // Set the new thread ID in the stream service first
+    this.streamService.setThreadId(threadId);
     this.setCurrentThreadId(threadId);
     
     // Load messages for the selected thread
@@ -78,6 +150,7 @@ export class ThreadService {
     // Reset state
     this.streamService.reset();
     this.setCurrentThreadId(null);
+    this.closeChatHistory();
   }
 
   /**
@@ -89,12 +162,19 @@ export class ThreadService {
       if (thread && thread.values && 'messages' in thread.values) {
         const messages = thread.values['messages'];
         if (Array.isArray(messages)) {
+          // Clear any existing messages first
+          this.streamService.reset();
           // Set the messages from the thread state
           this.streamService.setMessages(messages);
         }
+      } else {
+        // If no messages exist for this thread, just clear the current state
+        this.streamService.reset();
       }
     } catch (error) {
       console.error('Error loading thread messages:', error);
+      // On error, still reset to ensure clean state
+      this.streamService.reset();
     }
   }
 
@@ -129,5 +209,87 @@ export class ThreadService {
     }
     
     return 'Message';
+  }
+
+  // Thread history management (uses existing getThreads)
+  async loadThreadHistory(): Promise<void> {
+    const assistantId = this.streamService.getAssistantId();
+    if (assistantId) {
+      await this.getThreads(assistantId); // Use existing method with assistant ID
+    }
+  }
+
+  // Refresh threads after a new message/thread is created
+  async refreshThreads(): Promise<void> {
+    const assistantId = this.streamService.getAssistantId();
+    if (assistantId) {
+      // Refresh the threads list to show any new threads
+      await this.getThreads(assistantId);
+    }
+  }
+
+  selectThread(threadId: string): void {
+    this.switchToThread(threadId); // Use existing method
+    this.closeChatHistory();
+  }
+
+  // Chat history sidebar management
+  toggleChatHistory(): void {
+    this.chatHistoryOpenSignal.update(open => !open);
+  }
+
+  openChatHistory(): void {
+    this.chatHistoryOpenSignal.set(true);
+  }
+
+  closeChatHistory(): void {
+    this.chatHistoryOpenSignal.set(false);
+  }
+
+  // Tool calls visibility
+  toggleHideToolCalls(): void {
+    this.hideToolCallsSignal.update(hidden => !hidden);
+  }
+
+  setHideToolCalls(hidden: boolean): void {
+    this.hideToolCallsSignal.set(hidden);
+  }
+
+  // Thread regeneration
+  async regenerateFromCheckpoint(parentCheckpoint: string | null): Promise<void> {
+    const currentThreadId = this.streamService.threadId();
+    if (!currentThreadId) {
+      console.error('No thread ID available for regeneration');
+      return;
+    }
+
+    try {
+      // In a real implementation, you might want to:
+      // 1. Create a new branch from the checkpoint
+      // 2. Continue the conversation from that point
+      // For now, we'll just reset and restart the current thread
+      this.streamService.reset();
+      this.streamService.setThreadId(currentThreadId);
+    } catch (error) {
+      console.error('Failed to regenerate from checkpoint:', error);
+    }
+  }
+
+  // Helper method to get thread title from messages
+  getThreadTitle(thread: ThreadHistoryItem): string {
+    if (thread.values?.messages && thread.values.messages.length > 0) {
+      const firstMessage = thread.values.messages[0];
+      if (firstMessage?.content) {
+        if (typeof firstMessage.content === 'string') {
+          return firstMessage.content.slice(0, 50) + (firstMessage.content.length > 50 ? '...' : '');
+        } else if (Array.isArray(firstMessage.content)) {
+          const textContent = firstMessage.content.find((c: any) => c.type === 'text');
+          if (textContent?.text) {
+            return textContent.text.slice(0, 50) + (textContent.text.length > 50 ? '...' : '');
+          }
+        }
+      }
+    }
+    return thread.thread_id.slice(0, 8) + '...';
   }
 }

@@ -8,18 +8,29 @@
 
 .thread-container {
   display: flex;
-  flex-direction: column;
   height: 100vh;
   width: 100%;
   background-color: var(--white);
   position: relative;
+  overflow: hidden;
 }
 
-.thread-main {
+.main-content {
+  flex: 1;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  width: 100%;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &.with-sidebar {
+    margin-left: 300px;
+  }
+
+  @media (max-width: 1023px) {
+    &.with-sidebar {
+      margin-left: 0;
+    }
+  }
 }
 
 /* Header Styles */
@@ -39,7 +50,63 @@
 .header-content {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
   gap: 0.75rem;
+}
+
+.sidebar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.375rem;
+  color: var(--gray-600);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+
+  &:hover {
+    background-color: var(--gray-100);
+    color: var(--gray-800);
+  }
+
+  .icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+.app-title-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  transition: all 0.15s ease-in-out;
+
+  &:hover {
+    .app-title {
+      color: var(--blue-600);
+    }
+  }
+
+  .app-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin: 0;
+    transition: color 0.15s ease-in-out;
+  }
 }
 
 .logo {
@@ -124,6 +191,14 @@
 }
 
 /* Messages Area Styles */
+.messages-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
 .messages {
   flex: 1;
   overflow: hidden;
@@ -217,6 +292,39 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Controls Bar Styles */
+.controls-bar {
+  padding: 0.5rem 1.5rem;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--gray-50);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.toggle-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  
+  input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--blue-600);
+  }
+
+  .toggle-label {
+    user-select: none;
+  }
+
+  &:hover {
+    color: var(--gray-800);
   }
 }
 

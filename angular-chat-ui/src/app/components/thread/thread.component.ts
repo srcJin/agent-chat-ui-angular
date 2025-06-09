@@ -5,11 +5,13 @@ import { StreamService } from '../../services/stream.service';
 import { ThreadService } from '../../services/thread.service';
 import { LanggraphClientService, type Message, type Checkpoint } from '../../services/langgraph-client.service';
 import { MessageComponent } from '../message/message.component';
+import { ThreadHistoryComponent } from './history/thread-history.component';
+import { ScrollToBottomComponent } from './scroll-to-bottom/scroll-to-bottom.component';
 import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-thread',
-  imports: [CommonModule, FormsModule, MessageComponent],
+  imports: [CommonModule, FormsModule, MessageComponent, ThreadHistoryComponent, ScrollToBottomComponent],
   templateUrl: './thread.component.html',
   styleUrl: './thread.component.scss'
 })
@@ -36,10 +38,7 @@ export class ThreadComponent implements OnInit, OnDestroy {
 
   private async loadThreads() {
     try {
-      const assistantId = this.streamService.getAssistantId();
-      if (assistantId) {
-        await this.threadService.getThreads(assistantId);
-      }
+      await this.threadService.loadThreadHistory();
     } catch (error) {
       console.error('Error loading threads:', error);
     }
@@ -85,7 +84,7 @@ export class ThreadComponent implements OnInit, OnDestroy {
       this.firstTokenReceived.set(true);
       
       // Refresh threads list after successful submission
-      await this.loadThreads();
+      await this.threadService.refreshThreads();
     } catch (error) {
       console.error('Error sending message:', error);
     }
@@ -119,6 +118,14 @@ export class ThreadComponent implements OnInit, OnDestroy {
 
   onSettings() {
     this.settingsRequested.emit();
+  }
+
+  async refreshThreads() {
+    try {
+      await this.threadService.refreshThreads();
+    } catch (error) {
+      console.error('Error refreshing threads:', error);
+    }
   }
 
   get chatStarted(): boolean {

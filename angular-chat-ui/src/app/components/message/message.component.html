@@ -88,7 +88,7 @@
     </div>
 
     <!-- Tool calls display for AI messages -->
-    <div *ngIf="hasToolCalls && !isTool" class="tool-calls">
+          <div *ngIf="hasToolCalls && !isTool && !hideToolCalls" class="tool-calls">
       <div *ngFor="let toolCall of toolCalls" class="tool-call">
         <div class="tool-call-header">
           <svg class="tool-call-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
